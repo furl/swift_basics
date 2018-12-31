@@ -5,18 +5,13 @@ import UIKit
 struct Vehicle{
     
     enum VehicleType{
-        case car
-        case van
-        case truck
-        case bus
+        case car, van, truck, bus
     }
     enum EngineState{
-        case on
-        case off
+        case on, off
     }
     enum WindowsState{
-        case open
-        case closed
+        case open, closed
     }
     enum VehicleActions {
         case startEngine
@@ -118,6 +113,7 @@ if var myCar = Vehicle(vehicleType: .car, model: "Lotus Esprit S1", year: 1976, 
 print ("-----------------------")
 if var myTruck = Vehicle(vehicleType: .truck, model: "Volvo FM", year: 2013, cargoSpace: 112000, cargoInTrunk: 0, engineState: .off, windowsState: .closed){
     myTruck.doSomethingWithVehicle(namely: .loadCargo(amount: 200000))
+    myTruck.doSomethingWithVehicle(namely: .unloadCargo(amount: 200000))
     myTruck.doSomethingWithVehicle(namely: .openWindows)
     myTruck.doSomethingWithVehicle(namely: .openWindows)
     myTruck.doSomethingWithVehicle(namely: .closeWindows)
