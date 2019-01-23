@@ -1,50 +1,50 @@
 import UIKit
 
-
-
-struct Vehicle{
+class Car{
     
-    enum VehicleType{
-        case car, van, truck, bus
-    }
     enum EngineState{
         case on, off
     }
     enum WindowsState{
         case open, closed
     }
-    enum VehicleActions {
+    enum CarActions {
         case startEngine
         case stopEngine
         case openWindows
         case closeWindows
-        case loadCargo (amount: Int)
-        case unloadCargo (amount: Int)
+        case carryCargo
+        case injectN₂O
     }
     
-    let vehicleType: VehicleType //зачем копировать весь этот код и создавать дополнительные структуры, когда можно обойтись одним свойством? DRY
-    let model: String
-    let year: Int
-    let cargoSpace: Int // liters
-    private(set) public var cargoInTrunk: Int
+    let numberOfDoors: Int
+    let numberOfSeats: Int
+    let maxSpeed: Int
+    
     var engineState: EngineState
     var windowsState: WindowsState
     
-    init?(vehicleType: VehicleType, model: String, year: Int, cargoSpace: Int, cargoInTrunk: Int, engineState: EngineState, windowsState: WindowsState){
-        guard year >= 1769 && year <= Int(Date().description.prefix(4))! else { return nil }
-        guard cargoSpace >= 0 else { return nil }
-        guard cargoInTrunk >= 0 && cargoInTrunk <= cargoSpace else { return nil }
-        
-        self.vehicleType = vehicleType
-        self.model = model
-        self.year = year
-        self.cargoSpace = cargoSpace
-        self.cargoInTrunk = cargoInTrunk
+    init(numberOfDoors: Int, numberOfSeats: Int, maxSpeed: Int, engineState: EngineState = .off, windowsState: WindowsState = .closed){
+        self.numberOfDoors = numberOfDoors
+        self.numberOfSeats = numberOfSeats
+        self.maxSpeed = maxSpeed
         self.engineState = engineState
         self.windowsState = windowsState
     }
     
-    mutating func doSomethingWithVehicle(namely action: VehicleActions){
+    func doSomethingWithVehicle(namely action: CarActions){
+    }
+}
+
+class PickupTruck: Car{
+    let cargoSpace: Int
+    
+    init(numberOfDoors: Int, numberOfSeats: Int, maxSpeed: Int, cargoSpace: Int) {
+        self.cargoSpace = cargoSpace
+        super.init(numberOfDoors: numberOfDoors, numberOfSeats: numberOfSeats, maxSpeed: maxSpeed, engineState: .off, windowsState: .closed)
+    }
+    
+    override func doSomethingWithVehicle(namely action: Car.CarActions) {
         switch action {
         case .startEngine:
             if self.engineState == .off{
@@ -74,51 +74,70 @@ struct Vehicle{
             }else{
                 print("Windows are already closed")
             }
-        case .loadCargo(let amount):
-            let freeSpace = self.cargoSpace - self.cargoInTrunk
-            if (amount <= freeSpace) && (amount >= 0) {
-                self.cargoInTrunk += amount
-            }else{ //да, тут можно было сделать UInt, но мне очень нравится эта конструкция
-                print("Cannot load cargo. Reason: " + (amount >= 0 ? "not enough cargo space for \(amount) units. Space available: \(freeSpace)" : "negative amount of cargo"))
-            }
-        case .unloadCargo(let amount):
-            if (amount <= self.cargoInTrunk) {
-                self.cargoInTrunk -= amount
+        case .carryCargo:
+            print("Carrying cargo, that's what pickup truck was made for!")
+        default:
+            print("This type of car does not support specified action")
+        }
+    }
+}
+
+class SportsCar: Car{
+    let N₂OTank: Int
+    init(numberOfDoors: Int, numberOfSeats: Int, maxSpeed: Int, N2OTank: Int) {
+        self.N₂OTank = N2OTank
+        super.init(numberOfDoors: numberOfDoors, numberOfSeats: numberOfSeats, maxSpeed: maxSpeed, engineState: .off, windowsState: .closed)
+    }
+    override func doSomethingWithVehicle(namely action: Car.CarActions) {
+        switch action {
+        case .startEngine:
+            if self.engineState == .off{
+                self.engineState = .on
+                print("Starting engine...")
             }else{
-                print("Cannot unload cargo. Reason: " + (amount >= 0 ? "you're trying to unload more cargo (\(amount)) than there is (\(self.cargoInTrunk))." : "negative amount of cargo"))
+                print("Engine is already running")
             }
-            
-        }//switch
-        
-    }//mutating func doSomethingWithVehicle(namely action: VehicleActions){
-    
-}//struct Car
-
-
-
-if var myCar = Vehicle(vehicleType: .car, model: "Lotus Esprit S1", year: 1976, cargoSpace: 50, cargoInTrunk: 0, engineState: .off, windowsState: .closed){
-    myCar.doSomethingWithVehicle(namely: .loadCargo(amount: 20))
-    myCar.doSomethingWithVehicle(namely: .unloadCargo(amount: 10))
-    myCar.doSomethingWithVehicle(namely: .openWindows)
-    myCar.doSomethingWithVehicle(namely: .openWindows)
-    myCar.doSomethingWithVehicle(namely: .closeWindows)
-    myCar.doSomethingWithVehicle(namely: .startEngine)
-
-    myCar.windowsState = .open
-    
-}else{
-    print("Invalid Vehicle init")
+        case .stopEngine:
+            if self.engineState == .on{
+                self.engineState = .off
+                print("Stopping engine...")
+            }else{
+                print("Engine is already stopped")
+            }
+        case .openWindows:
+            if self.windowsState == .closed{
+                self.windowsState = .open
+                print("Opening windows...")
+            }else{
+                print("Windows are already opened")
+            }
+        case .closeWindows:
+            if self.windowsState == .open{
+                self.windowsState = .closed
+                print("Closing windows...")
+            }else{
+                print("Windows are already closed")
+            }
+        case .injectN₂O:
+            print("Injecting N₂O! Happy racing!")
+        default:
+            print("This type of car does not support specified action")
+        }
+    } // Можно ли здесь избавиться от копирования всего этого кода? Есть идея создать отдельную функцию для специальных действий, уникальных для наследников, а также отдельный enum для этих действий. А потом делать оверрайд этой функции, а родительскую функцию с общими действиями для всех машин оставить как есть. Или есть более правильный способ?
 }
 
-print ("-----------------------")
-if var myTruck = Vehicle(vehicleType: .truck, model: "Volvo FM", year: 2013, cargoSpace: 112000, cargoInTrunk: 0, engineState: .off, windowsState: .closed){
-    myTruck.doSomethingWithVehicle(namely: .loadCargo(amount: 200000))
-    myTruck.doSomethingWithVehicle(namely: .unloadCargo(amount: 200000))
-    myTruck.doSomethingWithVehicle(namely: .openWindows)
-    myTruck.doSomethingWithVehicle(namely: .openWindows)
-    myTruck.doSomethingWithVehicle(namely: .closeWindows)
-    myTruck.doSomethingWithVehicle(namely: .startEngine)
-    
-}else{
-    print("Invalid Vehicle init")
-}
+let myTruck = PickupTruck(numberOfDoors: 4, numberOfSeats: 5, maxSpeed: 180, cargoSpace: 500)
+
+myTruck.doSomethingWithVehicle(namely: .openWindows)
+myTruck.doSomethingWithVehicle(namely: .carryCargo)
+myTruck.doSomethingWithVehicle(namely: .injectN₂O)
+print("Cargo space: \(myTruck.cargoSpace)")
+
+print("-----------------------------------")
+
+let mySportsCar = SportsCar(numberOfDoors: 2, numberOfSeats: 2, maxSpeed: 250, N2OTank: 10)
+
+mySportsCar.doSomethingWithVehicle(namely: .startEngine)
+mySportsCar.doSomethingWithVehicle(namely: .injectN₂O)
+mySportsCar.doSomethingWithVehicle(namely: .carryCargo)
+print("N₂O tank: \(mySportsCar.N₂OTank)")
